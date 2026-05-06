@@ -1,31 +1,21 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
-const KEY = "forensiq_reports";
-
-export function saveReport(report) {
-  const reports = loadReports();
-  const newReport = {
-    ...report,
-    id: crypto.randomUUID(),
-    created_date: new Date().toISOString(),
-  };
-  reports.unshift(newReport);
-  // Keep max 100 reports
-  if (reports.length > 100) reports.splice(100);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-  return newReport;
-}
-
-export function loadReports() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-export function deleteReport(id) {
-  const reports = loadReports().filter((r) => r.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-}
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom"],
+    "target": "esnext",
+    "checkJs": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "include": ["src/components/**/*.js", "src/pages/**/*.jsx", "src/Layout.jsx"],
+  "exclude": ["node_modules", "dist", "src/vite-plugins", "src/components/ui", "src/api", "src/lib"]
+} 

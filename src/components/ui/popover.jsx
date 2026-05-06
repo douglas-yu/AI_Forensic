@@ -1,31 +1,27 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
-const KEY = "forensiq_reports";
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
 
-export function saveReport(report) {
-  const reports = loadReports();
-  const newReport = {
-    ...report,
-    id: crypto.randomUUID(),
-    created_date: new Date().toISOString(),
-  };
-  reports.unshift(newReport);
-  // Keep max 100 reports
-  if (reports.length > 100) reports.splice(100);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-  return newReport;
-}
+import { cn } from "@/lib/utils"
 
-export function loadReports() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
+const Popover = PopoverPrimitive.Root
 
-export function deleteReport(id) {
-  const reports = loadReports().filter((r) => r.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-}
+const PopoverTrigger = PopoverPrimitive.Trigger
+
+const PopoverAnchor = PopoverPrimitive.Anchor
+
+const PopoverContent = React.forwardRef(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props} />
+  </PopoverPrimitive.Portal>
+))
+PopoverContent.displayName = PopoverPrimitive.Content.displayName
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

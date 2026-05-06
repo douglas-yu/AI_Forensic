@@ -1,31 +1,25 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
-const KEY = "forensiq_reports";
+"use client"
 
-export function saveReport(report) {
-  const reports = loadReports();
-  const newReport = {
-    ...report,
-    id: crypto.randomUUID(),
-    created_date: new Date().toISOString(),
-  };
-  reports.unshift(newReport);
-  // Keep max 100 reports
-  if (reports.length > 100) reports.splice(100);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-  return newReport;
-}
+import * as React from "react"
+import * as HoverCardPrimitive from "@radix-ui/react-hover-card"
 
-export function loadReports() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
+import { cn } from "@/lib/utils"
 
-export function deleteReport(id) {
-  const reports = loadReports().filter((r) => r.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-}
+const HoverCard = HoverCardPrimitive.Root
+
+const HoverCardTrigger = HoverCardPrimitive.Trigger
+
+const HoverCardContent = React.forwardRef(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <HoverCardPrimitive.Content
+    ref={ref}
+    align={align}
+    sideOffset={sideOffset}
+    className={cn(
+      "z-50 w-64 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props} />
+))
+HoverCardContent.displayName = HoverCardPrimitive.Content.displayName
+
+export { HoverCard, HoverCardTrigger, HoverCardContent }

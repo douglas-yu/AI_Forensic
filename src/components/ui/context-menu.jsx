@@ -1,148 +1,156 @@
-import { useState, useEffect } from "react";
-import { loadReports, deleteReport } from "@/lib/localReports";
-import VerdictBadge from "@/components/forensic/VerdictBadge";
-import AnalysisResults from "@/components/forensic/AnalysisResults";
-import { History as HistoryIcon, Image, Video, AudioLines, Search, Trash2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import * as React from "react"
+import * as ContextMenuPrimitive from "@radix-ui/react-context-menu"
+import { Check, ChevronRight, Circle } from "lucide-react"
 
-const MEDIA_ICONS = { image: Image, video: Video, audio: AudioLines };
+import { cn } from "@/lib/utils"
 
-export default function History() {
-  const [reports, setReports] = useState([]);
-  const [search, setSearch] = useState("");
-  const [mediaFilter, setMediaFilter] = useState("all");
-  const [verdictFilter, setVerdictFilter] = useState("all");
-  const [selectedReport, setSelectedReport] = useState(null);
+const ContextMenu = ContextMenuPrimitive.Root
 
-  useEffect(() => {
-    setReports(loadReports());
-  }, []);
+const ContextMenuTrigger = ContextMenuPrimitive.Trigger
 
-  const handleDelete = (e, id) => {
-    e.stopPropagation();
-    deleteReport(id);
-    setReports(loadReports());
-  };
+const ContextMenuGroup = ContextMenuPrimitive.Group
 
-  const filtered = reports.filter((r) => {
-    if (mediaFilter !== "all" && r.media_type !== mediaFilter) return false;
-    if (verdictFilter !== "all" && r.verdict !== verdictFilter) return false;
-    if (search && !r.file_name?.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+const ContextMenuPortal = ContextMenuPrimitive.Portal
 
-  return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
-          <HistoryIcon className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Analysis History</h1>
-          <p className="text-xs text-muted-foreground font-mono">{reports.length} REPORTS STORED LOCALLY</p>
-        </div>
-      </div>
+const ContextMenuSub = ContextMenuPrimitive.Sub
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search by filename..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-xs bg-card border-border/50"
-          />
-        </div>
-        <Select value={mediaFilter} onValueChange={setMediaFilter}>
-          <SelectTrigger className="w-32 h-9 text-xs bg-card border-border/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Media</SelectItem>
-            <SelectItem value="image">Images</SelectItem>
-            <SelectItem value="video">Videos</SelectItem>
-            <SelectItem value="audio">Audio</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={verdictFilter} onValueChange={setVerdictFilter}>
-          <SelectTrigger className="w-40 h-9 text-xs bg-card border-border/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Verdicts</SelectItem>
-            <SelectItem value="authentic">Authentic</SelectItem>
-            <SelectItem value="likely_authentic">Likely Authentic</SelectItem>
-            <SelectItem value="inconclusive">Inconclusive</SelectItem>
-            <SelectItem value="likely_manipulated">Likely Manipulated</SelectItem>
-            <SelectItem value="manipulated">Manipulated</SelectItem>
-            <SelectItem value="ai_generated">AI Generated</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup
 
-      {/* Results */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <HistoryIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No analyses found</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">Run an analysis first to see results here</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((report) => {
-            const MediaIcon = MEDIA_ICONS[report.media_type] || Image;
-            return (
-              <div
-                key={report.id}
-                onClick={() => setSelectedReport(report)}
-                className={cn(
-                  "p-4 bg-card rounded-lg border border-border/50 flex items-center gap-4 cursor-pointer",
-                  "hover:border-primary/20 transition-all group"
-                )}
-              >
-                <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                  <MediaIcon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{report.file_name}</p>
-                  <p className="text-[10px] font-mono text-muted-foreground">
-                    {report.analysis_type?.replace(/_/g, " ").toUpperCase()} • {report.created_date ? format(new Date(report.created_date), "MMM d, yyyy HH:mm") : ""}
-                  </p>
-                </div>
-                <VerdictBadge verdict={report.verdict} size="sm" />
-                {report.confidence_score != null && (
-                  <span className="text-xs font-mono text-muted-foreground hidden sm:block">{report.confidence_score}%</span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive"
-                  onClick={(e) => handleDelete(e, report.id)}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            );
-          })}
-        </div>
+const ContextMenuSubTrigger = React.forwardRef(({ className, inset, children, ...props }, ref) => (
+  <ContextMenuPrimitive.SubTrigger
+    ref={ref}
+    className={cn(
+      "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+      inset && "pl-8",
+      className
+    )}
+    {...props}>
+    {children}
+    <ChevronRight className="ml-auto h-4 w-4" />
+  </ContextMenuPrimitive.SubTrigger>
+))
+ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName
+
+const ContextMenuSubContent = React.forwardRef(({ className, ...props }, ref) => (
+  <ContextMenuPrimitive.SubContent
+    ref={ref}
+    className={cn(
+      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props} />
+))
+ContextMenuSubContent.displayName = ContextMenuPrimitive.SubContent.displayName
+
+const ContextMenuContent = React.forwardRef(({ className, ...props }, ref) => (
+  <ContextMenuPrimitive.Portal>
+    <ContextMenuPrimitive.Content
+      ref={ref}
+      className={cn(
+        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
       )}
+      {...props} />
+  </ContextMenuPrimitive.Portal>
+))
+ContextMenuContent.displayName = ContextMenuPrimitive.Content.displayName
 
-      <Dialog open={!!selectedReport} onOpenChange={() => setSelectedReport(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-background border-border">
-          <DialogHeader>
-            <DialogTitle className="font-mono text-sm">
-              {selectedReport?.file_name} — {selectedReport?.analysis_type?.replace(/_/g, " ").toUpperCase()}
-            </DialogTitle>
-          </DialogHeader>
-          <AnalysisResults report={selectedReport} />
-        </DialogContent>
-      </Dialog>
-    </div>
+const ContextMenuItem = React.forwardRef(({ className, inset, ...props }, ref) => (
+  <ContextMenuPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      inset && "pl-8",
+      className
+    )}
+    {...props} />
+))
+ContextMenuItem.displayName = ContextMenuPrimitive.Item.displayName
+
+const ContextMenuCheckboxItem = React.forwardRef(({ className, children, checked, ...props }, ref) => (
+  <ContextMenuPrimitive.CheckboxItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    checked={checked}
+    {...props}>
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <ContextMenuPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </ContextMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </ContextMenuPrimitive.CheckboxItem>
+))
+ContextMenuCheckboxItem.displayName =
+  ContextMenuPrimitive.CheckboxItem.displayName
+
+const ContextMenuRadioItem = React.forwardRef(({ className, children, ...props }, ref) => (
+  <ContextMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}>
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <ContextMenuPrimitive.ItemIndicator>
+        <Circle className="h-4 w-4 fill-current" />
+      </ContextMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </ContextMenuPrimitive.RadioItem>
+))
+ContextMenuRadioItem.displayName = ContextMenuPrimitive.RadioItem.displayName
+
+const ContextMenuLabel = React.forwardRef(({ className, inset, ...props }, ref) => (
+  <ContextMenuPrimitive.Label
+    ref={ref}
+    className={cn(
+      "px-2 py-1.5 text-sm font-semibold text-foreground",
+      inset && "pl-8",
+      className
+    )}
+    {...props} />
+))
+ContextMenuLabel.displayName = ContextMenuPrimitive.Label.displayName
+
+const ContextMenuSeparator = React.forwardRef(({ className, ...props }, ref) => (
+  <ContextMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-border", className)}
+    {...props} />
+))
+ContextMenuSeparator.displayName = ContextMenuPrimitive.Separator.displayName
+
+const ContextMenuShortcut = ({
+  className,
+  ...props
+}) => {
+  return (
+    (<span
+      className={cn("ml-auto text-xs tracking-widest text-muted-foreground", className)}
+      {...props} />)
   );
+}
+ContextMenuShortcut.displayName = "ContextMenuShortcut"
+
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
 }

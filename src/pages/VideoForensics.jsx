@@ -1,31 +1,42 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
-const KEY = "forensiq_reports";
+import { useState } from "react";
+import { Video } from "lucide-react";
+import MediaUploader from "@/components/forensic/MediaUploader";
+import AnalysisTypePicker from "@/components/forensic/AnalysisTypePicker";
+import AnalysisRunner from "@/components/forensic/AnalysisRunner";
+import AnalysisResults from "@/components/forensic/AnalysisResults";
 
-export function saveReport(report) {
-  const reports = loadReports();
-  const newReport = {
-    ...report,
-    id: crypto.randomUUID(),
-    created_date: new Date().toISOString(),
-  };
-  reports.unshift(newReport);
-  // Keep max 100 reports
-  if (reports.length > 100) reports.splice(100);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-  return newReport;
-}
+export default function VideoForensics() {
+  const [fileData, setFileData] = useState(null);
+  const [analysisType, setAnalysisType] = useState("full_forensic");
+  const [report, setReport] = useState(null);
 
-export function loadReports() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
+  return (
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
+          <Video className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Video Forensics</h1>
+          <p className="text-xs text-muted-foreground font-mono">DEEPFAKE DETECTION • FRAME ANALYSIS • METADATA • AI DETECTION</p>
+        </div>
+      </div>
 
-export function deleteReport(id) {
-  const reports = loadReports().filter((r) => r.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(reports));
+      <div className="p-6 bg-card rounded-xl border border-border/50">
+        <MediaUploader mediaType="video" onFileSelected={(data) => { setFileData(data); setReport(null); }} />
+      </div>
+
+      {fileData && (
+        <div className="p-6 bg-card rounded-xl border border-border/50">
+          <AnalysisTypePicker mediaType="video" selected={analysisType} onSelect={setAnalysisType} />
+        </div>
+      )}
+
+      {fileData && (
+        <AnalysisRunner fileData={fileData} analysisType={analysisType} onComplete={setReport} />
+      )}
+
+      <AnalysisResults report={report} />
+    </div>
+  );
 }

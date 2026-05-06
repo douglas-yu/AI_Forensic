@@ -1,31 +1,22 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
-const KEY = "forensiq_reports";
+import * as React from "react"
+import * as SwitchPrimitives from "@radix-ui/react-switch"
 
-export function saveReport(report) {
-  const reports = loadReports();
-  const newReport = {
-    ...report,
-    id: crypto.randomUUID(),
-    created_date: new Date().toISOString(),
-  };
-  reports.unshift(newReport);
-  // Keep max 100 reports
-  if (reports.length > 100) reports.splice(100);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-  return newReport;
-}
+import { cn } from "@/lib/utils"
 
-export function loadReports() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
+const Switch = React.forwardRef(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+      className
+    )}
+    {...props}
+    ref={ref}>
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+      )} />
+  </SwitchPrimitives.Root>
+))
+Switch.displayName = SwitchPrimitives.Root.displayName
 
-export function deleteReport(id) {
-  const reports = loadReports().filter((r) => r.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-}
+export { Switch }

@@ -1,0 +1,98 @@
+{
+  "name": "AnalysisReport",
+  "type": "object",
+  "properties": {
+    "file_name": {
+      "type": "string",
+      "description": "Original file name"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL of the uploaded file"
+    },
+    "media_type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video",
+        "audio"
+      ],
+      "description": "Type of media analyzed"
+    },
+    "analysis_type": {
+      "type": "string",
+      "enum": [
+        "ai_detection",
+        "ela",
+        "metadata",
+        "noise_analysis",
+        "clone_detection",
+        "deepfake",
+        "spectral",
+        "voice_pattern",
+        "full_forensic"
+      ],
+      "description": "Type of analysis performed"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "authentic",
+        "likely_authentic",
+        "inconclusive",
+        "likely_manipulated",
+        "manipulated",
+        "ai_generated"
+      ],
+      "description": "Overall verdict"
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "Confidence score 0-100"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Detailed findings"
+    },
+    "metadata_extracted": {
+      "type": "object",
+      "description": "Extracted metadata from the file"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable summary"
+    }
+  },
+  "required": [
+    "file_name",
+    "media_type",
+    "analysis_type"
+  ]
+}

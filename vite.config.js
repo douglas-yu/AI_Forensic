@@ -1,31 +1,20 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
-const KEY = "forensiq_reports";
 
-export function saveReport(report) {
-  const reports = loadReports();
-  const newReport = {
-    ...report,
-    id: crypto.randomUUID(),
-    created_date: new Date().toISOString(),
-  };
-  reports.unshift(newReport);
-  // Keep max 100 reports
-  if (reports.length > 100) reports.splice(100);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-  return newReport;
-}
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
-export function loadReports() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-export function deleteReport(id) {
-  const reports = loadReports().filter((r) => r.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(reports));
-}
+// https://vite.dev/config/
+export default defineConfig({
+  logLevel: 'error', // Suppress warnings, only show errors
+  plugins: [
+    base44({
+      // Support for legacy code that imports the base44 SDK with @/integrations, @/entities, etc.
+      // can be removed if the code has been updated to use the new SDK imports from @base44/sdk
+      legacySDKImports: process.env.BASE44_LEGACY_SDK_IMPORTS === 'true',
+      hmrNotifier: true,
+      navigationNotifier: true,
+      analyticsTracker: true,
+      visualEditAgent: true
+    }),
+    react(),
+  ]
+});

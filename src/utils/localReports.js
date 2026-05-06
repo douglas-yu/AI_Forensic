@@ -1,6 +1,4 @@
-/**
- * LocalStorage-based report persistence (replaces database)
- */
+// LocalStorage-based report persistence
 const KEY = "forensiq_reports";
 
 export function saveReport(report) {
@@ -11,7 +9,6 @@ export function saveReport(report) {
     created_date: new Date().toISOString(),
   };
   reports.unshift(newReport);
-  // Keep max 100 reports
   if (reports.length > 100) reports.splice(100);
   localStorage.setItem(KEY, JSON.stringify(reports));
   return newReport;
